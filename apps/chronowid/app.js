@@ -90,7 +90,7 @@ function showMenu() {
         updateSettings();
       }
     },
-    'Stopwatch Mode': {
+    'Stopwatch Mode?': {
       value: settingsChronowid.stopwatchMode,
       format: v => v ? "On" : "Off",
       onchange: v => {
