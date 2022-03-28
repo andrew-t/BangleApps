@@ -95,6 +95,7 @@ function showMenu() {
       format: v => v ? "Stopwatch" : "Countdown",
       onchange: v => {
         settingsChronowid.stopwatchMode = v;
+        settingsChronowid.started = false;
         updateSettings();
       }
     },
