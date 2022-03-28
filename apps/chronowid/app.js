@@ -61,7 +61,7 @@ function showMenu() {
       showMenu();
     },
     'Hours': {
-      value: settingsChronowid.hours || 0,
+      value: settingsChronowid.hours,
       min: 0,
       max: 24,
       step: 1,
@@ -71,7 +71,7 @@ function showMenu() {
       }
     },
     'Minutes': {
-      value: settingsChronowid.minutes || 0,
+      value: settingsChronowid.minutes,
       min: 0,
       max: 59,
       step: 1,
@@ -81,7 +81,7 @@ function showMenu() {
       }
     },
     'Seconds': {
-      value: settingsChronowid.seconds || 0,
+      value: settingsChronowid.seconds,
       min: 0,
       max: 59,
       step: 1,
@@ -91,7 +91,7 @@ function showMenu() {
       }
     },
     'Mode': {
-      value: settingsChronowid.stopwatchMode || false,
+      value: settingsChronowid.stopwatchMode,
       format: v => v ? "Stopwatch" : "Countdown",
       onchange: v => {
         settingsChronowid.stopwatchMode = v;
@@ -99,7 +99,7 @@ function showMenu() {
       }
     },
     'Timer on': {
-      value: settingsChronowid.started || false,
+      value: settingsChronowid.started,
       format: v => v ? "On" : "Off",
       onchange: v => {
         settingsChronowid.started = v;
