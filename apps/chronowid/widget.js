@@ -24,9 +24,12 @@
   //counts down, calculates and displays
   function countDown() {
     var now = new Date();
-    diff = settingsChronowid.goal - now; //calculate difference
+    diff = Math.abs(settingsChronowid.goal - now); //calculate difference
     // time is up
-    if (settingsChronowid.started && diff < 1000) {
+    if (!settingsChronowid.stopwatchMode &&
+      settingsChronowid.started
+      && diff < 1000)
+    {
       Bangle.buzz(1500);
       //write timer off to file
       settingsChronowid.started = false;
