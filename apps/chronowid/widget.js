@@ -13,8 +13,8 @@
   }
 
   /*function printDebug() {
-    print ("Goaltime: " + getTime(settingsChronowid.goal));
-    print ("Goal: " + settingsChronowid.goal);
+    print ("zerotime: " + getTime(settingsChronowid.zero));
+    print ("zero: " + settingsChronowid.zero);
     print("Difftime: " + getTime(diff));
     print("Diff: " + diff);
     print ("Started: " + settingsChronowid.started);
@@ -24,14 +24,14 @@
   //counts down, calculates and displays
   function countDown() {
     var now = new Date();
-    diff = settingsChronowid.goal - now; //calculate difference
-    if (settingsChronowid.stopwatchMode)
+    diff = settingsChronowid.zero - now; //calculate difference
+    if (settingsChronowid.mode == 'sw')
       diff = 0 - diff;
     // time is up
-    else if (settingsChronowid.started && diff < 1000) {
+    else if (settingsChronowid.zero && diff < 1000) {
       Bangle.buzz(1500);
       //write timer off to file
-      settingsChronowid.started = false;
+      settingsChronowid.zero = null;
       require('Storage').writeJSON('chronowid.json', settingsChronowid);
       clearInterval(interval); //stop interval
       interval = undefined;
@@ -61,7 +61,7 @@
     g.drawString(timeStr, this.x+this.width/2, this.y+12);
   }, redraw:function() {
     var last = this.width;
-    if (!settingsChronowid.started) this.width = 0;
+    if (!settingsChronowid.zero) this.width = 0;
     else this.width = (diff < 3600000) ? 58 : 48;
     if (last != this.width) Bangle.drawWidgets();
     else this.draw();
@@ -70,7 +70,7 @@
     if (interval) clearInterval(interval);
     interval = undefined;
     // start countdown each second
-    if (settingsChronowid.started) interval = setInterval(countDown, 1000);
+    if (settingsChronowid.zero) interval = setInterval(countDown, 1000);
     // reset everything
     countDown();
   }};
