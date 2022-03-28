@@ -6,19 +6,21 @@ const storage = require('Storage');
 let settingsChronowid;
 
 function updateSettings() {
-  var now = new Date();
-  const t = settingsChronowid.stopwatchMode
-    ? { hours: 0, minutes: 0, seconds: 0 }
-    : settingsChronowid;
-  const goal = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    now.getHours() + t.hours,
-    now.getMinutes() + t.minutes,
-    now.getSeconds() + t.seconds
-  );
-  settingsChronowid.goal = goal.getTime();
+  if (!settingsChronowid.started) {
+    var now = new Date();
+    const t = settingsChronowid.stopwatchMode
+      ? { hours: 0, minutes: 0, seconds: 0 }
+      : settingsChronowid;
+    const goal = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      now.getHours() + t.hours,
+      now.getMinutes() + t.minutes,
+      now.getSeconds() + t.seconds
+    );
+    settingsChronowid.goal = goal.getTime();
+  }
   storage.writeJSON('chronowid.json', settingsChronowid);
   if (WIDGETS["chronowid"]) WIDGETS["chronowid"].reload();
 }
@@ -88,9 +90,9 @@ function showMenu() {
         updateSettings();
       }
     },
-    'Mode': {
+    'Stopwatch Mode': {
       value: settingsChronowid.stopwatchMode,
-      format: v => v ? "Stopwatch" : "Countdown",
+      format: v => v ? "On" : "Off",
       onchange: v => {
         settingsChronowid.stopwatchMode = v;
         updateSettings();
