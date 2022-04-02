@@ -63,6 +63,10 @@ function timeTo(now, then) {
   return 'In ' + Math.floor(mins / 60) + 'h ' + Math.floor(mins % 60) + 'm';
 }
 
+function startOfDay(ms) {
+  return ms - (ms % 84600000);
+}
+
 function drawCalendar() {
   let y = 64;
   g.setColor(g.theme.bg);
@@ -89,7 +93,7 @@ function drawCalendar() {
   for (const event of calendar) {
     if ((event.isAllDay ? event.start + 84600000 : event.end) < now) continue;
     const theDay = dateStr(event.start);
-    if (theDay > now && theDay != day) {
+    if (startOfDay(event.start) > now && theDay != day) {
       if (!anyEventsToday) {
         drawStr("", false, false);
         drawStr("No events", true, false);
