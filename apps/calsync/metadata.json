@@ -1,0 +1,16 @@
+{
+  "id": "calsync",
+  "name": "Calendar Sync",
+  "shortName": "Calendar Sync",
+  "version": "0.07",
+  "description": "Accepts and stores calendar data.",
+  "tags": "tool",
+  "supports": ["BANGLEJS","BANGLEJS2"],
+  "screenshots": [],
+  "readme": "README.md",
+  "icon": "icon.png",
+  "storage": [
+    {"name":"calsync","url":"lib.js"},
+    {"name":"calsync.img","url":"app-icon.js","evaluate":true}
+  ]
+}

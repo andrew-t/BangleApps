@@ -24,9 +24,9 @@ function getZero() {
 }
 
 function updateSettings() {
-  console.log('storing settings', JSON.stringify(settingsChronowid));
+  // console.log('storing settings', JSON.stringify(settingsChronowid));
   storage.writeJSON('chronowid.json', settingsChronowid);
-  if (WIDGETS["chronowid"]) WIDGETS["chronowid"].reload();
+  if (WIDGETS.chronowid) WIDGETS.chronowid.reload();
 }
 
 function getDisplayMilliseconds() {
@@ -37,18 +37,15 @@ function getDisplayMilliseconds() {
   return 0;
 }
 
-function pad2(k) { return (k <  10 ? '0' : '') + k; }
-function pad3(k) { return (k < 100 ? '0' : '') + pad2(k); }
-
 function getDisplayTime() {
   const ms = Math.floor(getDisplayMilliseconds());
   const s = Math.floor(ms / 1000);
   const m = Math.floor(s / 60);
   const h = Math.floor(m / 60);
-  return pad2(h) + ':' +
-    pad2(m % 60) + ':' +
-    pad2(s % 60) + ',' +
-    pad3(ms % 1000);
+  return h.toString().padStart(2,0) + ':' +
+    (m % 60).toString().padStart(2,0) + ':' +
+    (s % 60).toString().padStart(2,0) + '.' +
+    (ms % 1000).toString().padStart(3,0);
 }
 
 function resetSettings() {
@@ -71,12 +68,13 @@ function goToNextScreen() {
 let elements = [];
 
 function showMenu() {
-  elements = []
+  elements = [];
   return E.showMenu({
-    '': {
-      'title': 'Set timer'
+    '': { 'title': 'Set timer' },
+    '< Back' : () => {
+      E.showMenu(); // hide the menu
+      goToNextScreen();
     },
-    '< Back' : () => goToNextScreen(),
     'Reset': () => resetSettings(),
     'Hours': {
       value: settingsChronowid.hours,
@@ -101,8 +99,8 @@ function showMenu() {
     'Seconds': {
       value: settingsChronowid.seconds,
       min: 0,
-      max: 59,
-      step: 1,
+      max: 55,
+      step: 5,
       onchange: v => {
         settingsChronowid.seconds = v;
         updateSettings();
@@ -111,20 +109,25 @@ function showMenu() {
   });
 }
 
+function updateElement(el) {
+  g.setFontAlign(0, 0);
+  g.setFont("Vector", 24);
+  g.setBgColor(el.hl ? g.theme.bg2 : g.theme.bg);
+  g.setColor(el.hl ? g.theme.fg2 : g.theme.fg);
+  g.drawString(
+    el.label(),
+    el.x + el.w / 2,
+    el.y + el.h / 2,
+    true
+  );
+}
 
 function drawElements() {
-  console.log('drawing els', getDisplayTime());
- 
-  g.setColor(g.theme.fg);
-  g.setFontAlign(0, 0);
-  g.setFont("6x8", 2);
+  // console.log('drawing els', getDisplayTime());
   for (const el of elements) {
-    g.drawString(
-      el.label(),
-      el.x + el.w / 2,
-      el.y + el.h / 2,
-      true
-    );
+    g.setColor(el.hl ? g.theme.bg2 : g.theme.bg);
+    g.fillRect(el.x + 1, el.y + 1, el.x + el.w - 3, el.y + el.h - 3);
+    updateElement(el);
   }
 }
 
@@ -134,25 +137,34 @@ function setElements(els) {
 }
 
 Bangle.on("touch", (button, xy) => {
-  console.log('touch', JSON.stringify({ b: button, xy: xy, e: elements }));
+  // console.log('touch', JSON.stringify({ b: button, xy: xy, e: elements }));
   for (const el of elements)
     if (el.action && xy.x >= el.x && xy.y >= el.y && xy.x - el.x < el.w && xy.y - el.y < el.h) {
-      console.log('touched', el.label());
+      // console.log('touched', el.label());
       el.action();
     }
 });
 
 let interval = null;
+let timeout = null;
 
 function showCurrentScreen() {
-  console.log('redrawing screen', JSON.stringify(settingsChronowid));
+  // console.log('redrawing screen', JSON.stringify(settingsChronowid));
 
+  g.setBgColor(g.theme.bg);
   g.clear();
   Bangle.loadWidgets();
   Bangle.drawWidgets();
 
-  if (interval) clearInterval(interval);
-  interval = null;
+  if (interval)  {
+    // console.log('clearing interval');
+    clearInterval(interval);
+    interval = null;
+  }
+  if (timeout) {
+    clearTimeout(timeout);
+    timeout = null;
+  }
 
   if (!settingsChronowid.mode) {
     setElements([
@@ -162,22 +174,27 @@ function showCurrentScreen() {
         action: () => {
           settingsChronowid.mode = STOPWATCH;
           goToNextScreen();
-        }
+        },
+        hl: true
       }, {
         x: 0, w: 176, y: 100, h: 76,
         label: () => "Countdown",
         action: () => {
           settingsChronowid.mode = COUNTDOWN;
           goToNextScreen();
-        }
+        },
+        hl: true
       }
     ]);
+    // close the app if you hang on this screen for 30s
+    timeout = setTimeout(() => load(), 30000);
     return;
   }
 
   const timerElement = {
     x: 0, w: 176, y: 24, h: 76,
-    label: () => getDisplayTime()
+    label: () => getDisplayTime(),
+    hl: false
   };
 
   const elements = [timerElement];
@@ -190,10 +207,12 @@ function showCurrentScreen() {
         settingsChronowid.pausedAt = settingsChronowid.zero - Date.now();
         settingsChronowid.zero = null;
         goToNextScreen();
-      }
+      },
+      hl: true
     });
     setElements(elements);
-    interval = setInterval(() => drawElements(), 63);
+    // console.log('setting interval');
+    interval = setInterval(() => updateElement(timerElement), 63);
     return;
   } else
     elements.push({
@@ -203,7 +222,8 @@ function showCurrentScreen() {
         settingsChronowid.zero = getZero();
         settingsChronowid.pausedAt = null;
         goToNextScreen();
-      }
+      },
+      hl: true
     });
 
   if (settingsChronowid.pausedAt) {
@@ -214,7 +234,8 @@ function showCurrentScreen() {
         settingsChronowid.zero = null;
         settingsChronowid.pausedAt = null;
         goToNextScreen();
-      }
+      },
+      hl: true
     });
     setElements(elements);
     return;
@@ -228,7 +249,8 @@ function showCurrentScreen() {
       settingsChronowid.pausedAt = null;
       settingsChronowid.mode = null;
       goToNextScreen();
-    }
+    },
+    hl: true
   });
 
   if (settingsChronowid.mode == COUNTDOWN)
