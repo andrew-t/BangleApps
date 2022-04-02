@@ -2,7 +2,7 @@
   "id": "cal-clock",
   "name": "Calendar Clock",
   "shortName": "Calendar Clock",
-  "version": "0.12",
+  "version": "0.13",
   "description": "Clockface with calendar data",
   "type": "clock",
   "tags": "clock",
