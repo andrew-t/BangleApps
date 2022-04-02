@@ -101,7 +101,6 @@ function drawCalendar() {
       }
       day = theDay;
       drawStr(day, true, true);
-      anyEventsToday = true;
     }
     let actAsFirst = first && !event.isAllDay && event.start - now < 10800000;
     // don't treat events as importantly "next" if they've been going on for a bit
@@ -119,6 +118,7 @@ function drawCalendar() {
     } else
       drawStr((when ? when + ': ' : '') + title, false, event.isAllDay);
     if (y > 176) return;
+    anyEventsToday = true;
     if (actAsFirst) first = false;
   }
 }
