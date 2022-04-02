@@ -93,7 +93,7 @@ function drawCalendar() {
   for (const event of calendar) {
     if ((event.isAllDay ? event.start + 84600000 : event.end) < now) continue;
     const theDay = dateStr(event.start);
-    if (startOfDay(event.start) > now && theDay != day) {
+    if (theDay != day && startOfDay(event.start) >= startOfDay(now)) {
       if (!anyEventsToday) {
         drawStr("", false, false);
         drawStr("No events", true, false);
