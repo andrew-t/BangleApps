@@ -1,0 +1,15 @@
+{
+  "id": "pebpuzzclock",
+  "name": "Puzzle Clock",
+  "shortName": "Puzzle Clock",
+  "version": "0.01",
+  "description": "Puzzling clock face ported from Pebble",
+  "type": "clock",
+  "tags": "clock",
+  "supports": ["BANGLEJS","BANGLEJS2"],
+  "screenshots": [],
+  "readme": "README.md",
+  "storage": [
+    {"name":"pebpuzzclock.app.js","url":"app.js"}
+  ]
+}
