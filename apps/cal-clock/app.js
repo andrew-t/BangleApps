@@ -94,14 +94,35 @@ function drawMusic() {
     g.fillRect(59, 120, 116, 176);
     g.fillRect(118, 120, 175, 176);
     g.setColor(g.theme.fg);
-    g.setFont("Vector", 16);
+    g.setFont("Vector", 24);
     g.setFontAlign(0, 0);
     g.drawString("V+", 30, 92);
-    g.drawString("|<", 89, 92);
-    g.drawString(">", 148, 92);
+    // g.drawString("|<", 89, 92);
+    g.fillPolyAA([
+      98, 82,
+      88, 92,
+      98, 102,
+    ]);
+    g.fillRect(81, 82, 85, 102);
+    // g.drawString(">", 148, 92);
+    g.fillPolyAA([
+      138, 82,
+      158, 92,
+      138, 102,
+    ]);
     g.drawString("V-", 30, 148);
-    g.drawString("STOP", 89, 148);
-    g.drawString("<-", 148, 148);
+    // g.drawString("STOP", 89, 148);
+    g.fillRect(79, 138, 99, 158);
+    // g.drawString("<-", 148, 148);
+    g.drawPolyAA([
+      148, 138,
+      138, 148,
+      148, 158,
+    ]);
+    g.drawPolyAA([
+      138, 148,
+      158, 148,
+    ]);
     return;
   }
   g.setColor(g.theme.fg);
@@ -130,14 +151,37 @@ function drawMusic() {
   g.fillRect(59, 120, 116, 176);
   g.fillRect(118, 120, 175, 176);
   g.setColor(g.theme.fg);
-  g.setFont("Vector", 16);
+  g.setFont("Vector", 24);
   g.setFontAlign(0, 0);
-  const play = state.state == 'play';
-  const pause = state.state == 'pause';
-  const stop = state.state == 'stop';
-  const playLabel = play ? '||' : (pause || stop ? ">" : ">||");
-  g.drawString(playLabel, 30, 148);
-  g.drawString(">|", 89, 148);
+  switch (state.state) {
+    case 'play':
+      g.fillRect(25, 138, 28, 158);
+      g.fillRect(32, 138, 35, 158);
+      break;
+    case 'pause':
+    case 'stop':
+      g.fillPolyAA([
+        20, 138,
+        40, 148,
+        20, 158,
+      ]);
+      break;
+    default:
+      g.fillPolyAA([
+        16, 138,
+        26, 148,
+        16, 158,
+      ]);
+      g.fillRect(33, 138, 36, 158);
+      g.fillRect(40, 138, 43, 158);
+      break;
+  }
+  g.fillPolyAA([
+    80, 138,
+    90, 148,
+    80, 158,
+  ]);
+  g.fillRect(93, 138, 96, 158);
   g.drawString("...", 148, 148);
 }
 
