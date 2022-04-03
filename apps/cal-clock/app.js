@@ -201,8 +201,12 @@ function drawTime() {
   queueDrawTime();
 }
 
-function timeStr(event, now) {
+function timeStrOrNow(event, now) {
   if (event.start < now) return "Now";
+  return timeStr(event);
+}
+
+function timeStr(event) {
   const d = new Date(event.start);
   return d.getHours().toString().padStart(2, ' ') + ':'
     + d.getMinutes().toString().padStart(2, '0');
@@ -272,16 +276,17 @@ function drawCalendar() {
     if (actAsFirst && event.start + 600000 < now) actAsFirst = false;
     // // console.log('drawing event', event, actAsFirst);
     const title = event.title.trim();
-    const when = event.isAllDay ? '' : timeStr(event, now);
     if (actAsFirst) {
       drawStr(
-        timeTo(now, event.start) + ' @ ' + when.trim(),
+        timeTo(now, event.start) + ' @ ' + timeStr(event).trim(),
         first && !event.isAllDay,
         false
       );
       drawStr(title, first && !event.isAllDay, false);
-    } else
+    } else {
+      const when = event.isAllDay ? '' : timeStr(event, now);
       drawStr((when ? when + ': ' : '') + title, false, event.isAllDay);
+    }
     if (y > 176) return;
     anyEventsToday = true;
     if (actAsFirst) first = false;
