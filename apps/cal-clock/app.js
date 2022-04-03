@@ -7,13 +7,19 @@ Graphics.prototype.setFontDylex7x13 = function() {
 let showSeconds = false;
 let calendar = [];
 
+const CALENDAR = 'cal',
+  MUSIC = 'media';
+let mode = null;
+
 function clearScreen() {
+  // console.log('clearing screen');
   g.setBgColor(g.theme.bg);
   g.clear();
   Bangle.loadWidgets();
   Bangle.drawWidgets();
 }
 function clearCalendarArea() {
+  // console.log('clearing calendar area');
   g.setColor(g.theme.bg);
   g.fillRect(0, 64, 176, 176);
 }
@@ -21,6 +27,7 @@ function clearCalendarArea() {
 let loadCalendarInterval = null, drawCalendarInterval = null;
 // only call this from enableCalendar: 
 function loadCalendar() {
+  // console.log('loading calendar')
   calendar = require('Storage').readJSON('calendar-2d.json', true) || [];
   if (drawCalendarInterval) clearInterval(drawCalendarInterval);
   drawCalendarInterval = setInterval(drawCalendar, 60000);
@@ -28,31 +35,42 @@ function loadCalendar() {
 }
 // functions to enter (or refresh) and leave calendar mode
 function enableCalendar() {
+  // console.log('calendar mode!');
+  mode = CALENDAR;
   if (loadCalendarInterval) clearInterval(loadCalendarInterval);
   loadCalendarInterval = setInterval(loadCalendar, 900000); // every 15m
   loadCalendar();
 }
 function disableCalendar() {
+  mode = null;
   if (loadCalendarInterval) clearInterval(loadCalendarInterval);
   if (drawCalendarInterval) clearInterval(drawCalendarInterval);
   clearCalendarArea();
 }
 
 function enableMusic() {
+  // console.log('music mode!');
+  mode = MUSIC;
+  musicMenuOpen = false;
   drawMusic();
 }
 function disableMusic() {
+  mode = null;
   clearCalendarArea();
 }
 
 function enableCalendarOrMusic() {
-  if (global.calClockMusicState && global.calClockMusicState.state != 'stop') {
+  if (!global.calClockMusicState || global.calClockMusicState.state == 'stop') {
+    disableMusic();
+    enableCalendar();
+    return;
+  }
+  if (global.calClockMusicState.state == 'play') {
     disableCalendar();
     enableMusic();
     return;
   }
-  disableMusic();
-  enableCalendar();
+  if (mode == MUSIC) drawMusic();
 }
 
 // switch mode or update screen when music state changes
@@ -60,33 +78,70 @@ global.calClockMusicHandler = enableCalendarOrMusic;
 // unregister listener when the app closes
 E.on('kill', () => global.calClockMusicHandler = null);
 
+let musicMenuOpen;
 function drawMusic() {
   clearCalendarArea();
   const state = global.calClockMusicState;
   const info = global.calClockMusicInfo;
+  // console.log('musicstate', state, info)
+  if (musicMenuOpen) {
+    g.setColor(g.theme.bg2);
+    g.fillRect(0, 64, 57, 118);
+    g.fillRect(59, 64, 116, 118);
+    g.fillRect(118, 64, 175, 118);
+    g.fillRect(0, 120, 57, 176);
+    g.fillRect(59, 120, 116, 176);
+    g.fillRect(118, 120, 175, 176);
+    g.setColor(g.theme.fg);
+    g.setFont("Vector", 16);
+    g.setFontAlign(0, 0);
+    g.drawString("V+", 30, 92);
+    g.drawString("<<", 89, 92);
+    g.drawString(">>", 148, 92);
+    g.drawString("V-", 30, 148);
+    g.drawString("STOP", 89, 148);
+    g.drawString("<-", 148, 148);
+    return;
+  }
   g.setColor(g.theme.fg);
-  g.setFont("Dylex7x13");
-  g.setFontAlign(-1, -1);
+  g.setFont("Vector", 16);
   if (info) {
-    g.drawString(info.artist, 0, 64);
-    g.drawString(info.track, 0, 77);
-    g.drawString(info.album, 0, 90);
-    g.drawString(info.dur + ' - ' + info.n + '/' + info.c, 0, 103);
+    centreText(info.artist || "Unknown artist", 64);
+    centreText(info.track || "Unknown track", 80);
+    centreText(info.album || "Unknown album", 96);
+    // g.drawString(info.dur + ' - ' + info.n + '/' + info.c, 0, 103);
   }
   else {
-    g.drawString("no song", 0, 64);
+    centreText("No song information", 77);
   }
-  if (state) {
-    g.drawString(info.state, 0, 120);
-    g.drawString('pos: ' + info.position, 0, 133);
-    g.drawString('shuffle: ' + info.shuffle, 0, 146);
-    g.drawString('repeat: ' + info.repeat, 0, 159);
-  } else {
-    g.drawString("no state", 0, 120);
-  }
+  // if (state) {
+  //   g.setFont("Dylex7x13");
+  //   g.setFontAlign(-1, -1);
+  //   g.drawString(state.state, 0, 120);
+  //   g.drawString('pos: ' + state.position, 0, 133);
+  //   g.drawString('shuffle: ' + state.shuffle, 0, 146);
+  //   g.drawString('repeat: ' + state.repeat, 0, 159);
+  // } else {
+  //   g.drawString("no state", 0, 120);
+  // }
+  g.setColor(g.theme.bg2);
+  g.fillRect(0, 120, 57, 176);
+  g.fillRect(59, 120, 116, 176);
+  g.fillRect(118, 120, 175, 176);
+  g.setColor(g.theme.fg);
+  g.setFont("Vector", 16);
+  g.setFontAlign(0, 0);
+  const play = state.state == 'play';
+  const pause = state.state == 'pause';
+  const stop = state.state == 'stop';
+  const playLabel = play ? '||' : (pause || stop ? ">" : ">||");
+  g.drawString(playLabel, 30, 148);
+  g.drawString(">|", 89, 148);
+  g.drawString("...", 148, 148);
 }
 
 function drawTime() {
+  // console.log('drawing time')
   const now = new Date();
   let time = require('locale').time(now, 1).trim();
   if (showSeconds) {
@@ -127,7 +182,14 @@ function startOfDay(ms) {
   return ms - (ms % 84600000);
 }
 
+function centreText(txt, y) {
+  const centre = g.stringWidth(txt) <= g.getWidth();
+  g.setFontAlign(centre ? 0 : -1, -1);
+  g.drawString(txt, centre ? 88 : 1, y + 1);
+}
+
 function drawCalendar() {
+  // console.log('drawing calendar')
   let y = 64;
   clearCalendarArea();
   g.setColor(g.theme.fg);
@@ -141,8 +203,7 @@ function drawCalendar() {
       else g.setFont("Dylex7x13");
       g.fillRect(0, y, 176, y + (big ? 17 : 14));
       g.setColor(hl ? g.theme.fg2 : g.theme.fg);
-      g.setFontAlign(centre ? 0 : -1, -1);
-      g.drawString(txt, centre ? 88 : 1, y + 1);
+      centreText(txt, y);
     }
     y += big ? 17 : 14;
   }
@@ -164,7 +225,7 @@ function drawCalendar() {
     let actAsFirst = first && !event.isAllDay && event.start - now < 10800000;
     // don't treat events as importantly "next" if they've been going on for a bit
     if (actAsFirst && event.start + 600000 < now) actAsFirst = false;
-    // console.log('drawing event', event, actAsFirst);
+    // // console.log('drawing event', event, actAsFirst);
     const title = event.title.trim();
     const when = event.isAllDay ? '' : timeStr(event, now);
     if (actAsFirst) {
@@ -200,16 +261,79 @@ function setShowSeconds(on) {
   drawTime();
 }
 
-enableCalendarOrMusic();
 clearScreen();
+enableCalendarOrMusic();
 setShowSeconds(!Bangle.isLocked());
 
 // Register hooks for LCD on/off event and screen lock on/off event
 Bangle.on('lcdPower', on => setShowSeconds(on));
 Bangle.on('lock', on => {
+  // console.log('lock toggled', on);
   if (!on) enableCalendarOrMusic();
   setShowSeconds(!on);
 });
 
 // Show launcher when middle button pressed
 Bangle.setUI("clock");
+
+// handle button presses in music mode
+Bangle.on("touch", (button, xy) => {
+  // console.log('touch', JSON.stringify({ b: button, xy: xy, e: elements }));
+  if (mode == CALENDAR) {
+    if (xy.y < 64) return;
+    disableCalendar();
+    enableMusic();
+    return;
+  }
+  if (mode != MUSIC) return;
+  if (!musicMenuOpen) {
+    if (xy.y < 64) return;
+    if (xy.y < 120) {
+      // bonus feature: tap the track info to go back a track
+      // not important so i'm ok with not surfacing it
+      // but seems silly not to allow it at all
+      Bangle.musicControl('previous');
+      return;
+    }
+    if (xy.x < 59) {
+      Bangle.musicControl('playpause');
+      return;
+    }
+    if (xy.x < 118) {
+      Bangle.musicControl('next');
+      return;
+    }
+    // console.log('menu button pressed')
+    musicMenuOpen = true;
+    drawMusic();
+    return;
+  }
+  if (xy.y < 64) return;
+  if (xy.y < 120) {
+    if (xy.x < 59) {
+      Bangle.musicControl('volumeup');
+      return;
+    }
+    if (xy.x < 118) {
+      Bangle.musicControl('rewind');
+      return;
+    }
+    Bangle.musicControl('forward');
+    return;
+  }
+  if (xy.x < 59) {
+    Bangle.musicControl('volumedown');
+    return;
+  }
+  if (xy.x < 118) {
+    Bangle.musicControl('pause');
+    Bangle.musicControl('stop');
+    global.clearCalClockMusic();
+    disableMusic();
+    enableCalendar();
+    return;
+  }
+  musicMenuOpen = false;
+  drawMusic();
+  return;
+});

@@ -12,6 +12,7 @@
   "icon": "icon.png",
   "storage": [
     {"name":"cal-clock.app.js","url":"app.js"},
+    {"name":"cal-clock.boot.js","url":"boot.js"},
     {"name":"cal-clock.img","url":"app-icon.js","evaluate":true}
   ]
 }

@@ -25,9 +25,17 @@
 
     switch (event.t) {
       // {t:"musicstate", state:"play/pause",position,shuffle,repeat}
-      case "musicstate": global.calClockMusicState = event; updateCalClock(); return;
+      case "musicstate":
+        delete event.t;
+        global.calClockMusicState = event;
+        updateCalClock();
+        return;
       // {t:"musicinfo", artist,album,track,dur,c(track count),n(track num}
-      case "musicinfo": global.calClockMusicInfo = event; updateCalClock(); return;
+      case "musicinfo":
+        delete event.t;
+        global.calClockMusicInfo = event;
+        updateCalClock();
+        return;
       // we only care about music events for now
       // todo -- this might be a good place to handle calendar events
       default: return;
