@@ -5,25 +5,85 @@ Graphics.prototype.setFontDylex7x13 = function() {
 };
 
 let showSeconds = false;
-
-let calendarInterval = null;
 let calendar = [];
-function _loadCalendar() {
-  console.log("Loading calendar...");
-  calendar = require('Storage').readJSON('calendar-2d.json', true) || [];
-  drawCalendar();
-}
-function loadCalendar() {
-  if (calendarInterval) clearInterval(calendarInterval);
-  calendarInterval = setInterval(_loadCalendar, 900000); // every 15m
-  _loadCalendar();
-}
 
 function clearScreen() {
   g.setBgColor(g.theme.bg);
   g.clear();
   Bangle.loadWidgets();
   Bangle.drawWidgets();
+}
+function clearCalendarArea() {
+  g.setColor(g.theme.bg);
+  g.fillRect(0, 64, 176, 176);
+}
+
+let loadCalendarInterval = null, drawCalendarInterval = null;
+// only call this from enableCalendar: 
+function loadCalendar() {
+  calendar = require('Storage').readJSON('calendar-2d.json', true) || [];
+  if (drawCalendarInterval) clearInterval(drawCalendarInterval);
+  drawCalendarInterval = setInterval(drawCalendar, 60000);
+  drawCalendar();
+}
+// functions to enter (or refresh) and leave calendar mode
+function enableCalendar() {
+  if (loadCalendarInterval) clearInterval(loadCalendarInterval);
+  loadCalendarInterval = setInterval(loadCalendar, 900000); // every 15m
+  loadCalendar();
+}
+function disableCalendar() {
+  if (loadCalendarInterval) clearInterval(loadCalendarInterval);
+  if (drawCalendarInterval) clearInterval(drawCalendarInterval);
+  clearCalendarArea();
+}
+
+function enableMusic() {
+  drawMusic();
+}
+function disableMusic() {
+  clearCalendarArea();
+}
+
+function enableCalendarOrMusic() {
+  if (global.calClockMusicState && global.calClockMusicState.state != 'stop') {
+    disableCalendar();
+    enableMusic();
+    return;
+  }
+  disableMusic();
+  enableCalendar();
+}
+
+// switch mode or update screen when music state changes
+global.calClockMusicHandler = enableCalendarOrMusic;
+// unregister listener when the app closes
+E.on('kill', () => global.calClockMusicHandler = null);
+
+function drawMusic() {
+  clearCalendarArea();
+  const state = global.calClockMusicState;
+  const info = global.calClockMusicInfo;
+  g.setColor(g.theme.fg);
+  g.setFont("Dylex7x13");
+  g.setFontAlign(-1, -1);
+  if (info) {
+    g.drawString(info.artist, 0, 64);
+    g.drawString(info.track, 0, 77);
+    g.drawString(info.album, 0, 90);
+    g.drawString(info.dur + ' - ' + info.n + '/' + info.c, 0, 103);
+  }
+  else {
+    g.drawString("no song", 0, 64);
+  }
+  if (state) {
+    g.drawString(info.state, 0, 120);
+    g.drawString('pos: ' + info.position, 0, 133);
+    g.drawString('shuffle: ' + info.shuffle, 0, 146);
+    g.drawString('repeat: ' + info.repeat, 0, 159);
+  } else {
+    g.drawString("no state", 0, 120);
+  }
 }
 
 function drawTime() {
@@ -69,8 +129,7 @@ function startOfDay(ms) {
 
 function drawCalendar() {
   let y = 64;
-  g.setColor(g.theme.bg);
-  g.fillRect(0, 64, 176, 176);
+  clearCalendarArea();
   g.setColor(g.theme.fg);
   const now = Date.now();
   let day = dateStr(now);
@@ -141,16 +200,14 @@ function setShowSeconds(on) {
   drawTime();
 }
 
-loadCalendar();
+enableCalendarOrMusic();
 clearScreen();
 setShowSeconds(!Bangle.isLocked());
-drawCalendar();
-setInterval(drawCalendar, 60000);
 
 // Register hooks for LCD on/off event and screen lock on/off event
 Bangle.on('lcdPower', on => setShowSeconds(on));
 Bangle.on('lock', on => {
-  if (!on) loadCalendar();
+  if (!on) enableCalendarOrMusic();
   setShowSeconds(!on);
 });
 
