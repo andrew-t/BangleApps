@@ -60,12 +60,13 @@ function disableMusic() {
 }
 
 function enableCalendarOrMusic() {
-  if (!global.calClockMusicState || global.calClockMusicState.state == 'stop') {
+  const state = global.calClockMusicState;
+  if (!state || state.state == 'stop') {
     disableMusic();
     enableCalendar();
     return;
   }
-  if (global.calClockMusicState.state == 'play') {
+  if (state.state == 'play') {
     disableCalendar();
     enableMusic();
     return;
@@ -96,8 +97,8 @@ function drawMusic() {
     g.setFont("Vector", 16);
     g.setFontAlign(0, 0);
     g.drawString("V+", 30, 92);
-    g.drawString("<<", 89, 92);
-    g.drawString(">>", 148, 92);
+    g.drawString("|<", 89, 92);
+    g.drawString(">", 148, 92);
     g.drawString("V-", 30, 148);
     g.drawString("STOP", 89, 148);
     g.drawString("<-", 148, 148);
@@ -270,6 +271,10 @@ Bangle.on('lcdPower', on => setShowSeconds(on));
 Bangle.on('lock', on => {
   // console.log('lock toggled', on);
   if (!on) enableCalendarOrMusic();
+  else if (mode == MUSIC && musicMenuOpen) {
+    musicMenuOpen = false;
+    drawMusic();
+  }
   setShowSeconds(!on);
 });
 
@@ -289,10 +294,8 @@ Bangle.on("touch", (button, xy) => {
   if (!musicMenuOpen) {
     if (xy.y < 64) return;
     if (xy.y < 120) {
-      // bonus feature: tap the track info to go back a track
-      // not important so i'm ok with not surfacing it
-      // but seems silly not to allow it at all
-      Bangle.musicControl('previous');
+      disableMusic();
+      enableCalendar();
       return;
     }
     if (xy.x < 59) {
@@ -315,10 +318,10 @@ Bangle.on("touch", (button, xy) => {
       return;
     }
     if (xy.x < 118) {
-      Bangle.musicControl('rewind');
+      Bangle.musicControl('previous');
       return;
     }
-    Bangle.musicControl('forward');
+    Bangle.musicControl('play');
     return;
   }
   if (xy.x < 59) {
