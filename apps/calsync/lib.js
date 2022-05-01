@@ -4,9 +4,9 @@ exports.push = function(body) {
      .map(x => {
        const i = x.indexOf(', ');
        const times = x.substr(0, i).split('-').map(x => parseInt(x, 10) * 1000);
-       const isAllDay = x[i + 2] == 'y';
+       const allDay = x[i + 2] == 'y';
        const title = x.substr(i + (isAllDay ? 7 : 6));
-       return { start: times[0], end: times[1], isAllDay: isAllDay, title: title };
+       return { start: times[0], end: times[1], allDay: allDay, title: title };
      });
   require("Storage").writeJSON("calendar-2d.json", events);
 };

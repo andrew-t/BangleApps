@@ -60,8 +60,8 @@ TODO:
     */
       var TILESIZE = 96; // Size of our tiles
       var OSMTILESIZE = 256; // Size of openstreetmap tiles
-      var MAPSIZE = TILESIZE*5; ///< 480 - Size of map we download
-      var OSMTILECOUNT = 3; // how many tiles do we download in each direction (Math.floor(MAPSIZE / OSMTILESIZE)+1)
+      var MAPSIZE = TILESIZE*15; ///< 480 - Size of map we download
+      var OSMTILECOUNT = Math.floor(MAPSIZE / OSMTILESIZE)+1; // how many tiles do we download in each direction
       /* Can see possible tiles on http://leaflet-extras.github.io/leaflet-providers/preview/
       However some don't allow cross-origin use */
       var TILELAYER = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'; // simple, high contrast

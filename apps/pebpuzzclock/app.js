@@ -73,6 +73,7 @@ function drawTime() {
   drawN(1, 0, digit(h, 0));
   drawN(0, 1, digit(m, 1));
   drawN(1, 1, digit(m, 0));
+  queueDrawTime();
 }
 
 let drawTimeout = null;

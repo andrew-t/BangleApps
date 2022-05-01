@@ -9,6 +9,7 @@
   "supports": ["BANGLEJS","BANGLEJS2"],
   "screenshots": [{"url":"screenshot.png"}],
   "readme": "README.md",
+  "sortorder": -15,
   "storage": [
     {"name":"chronowid.wid.js","url":"widget.js"},
     {"name":"chronowid.app.js","url":"app.js"},

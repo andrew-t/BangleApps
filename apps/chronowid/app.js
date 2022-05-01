@@ -42,10 +42,14 @@ function getDisplayTime() {
   const s = Math.floor(ms / 1000);
   const m = Math.floor(s / 60);
   const h = Math.floor(m / 60);
-  return h.toString().padStart(2,0) + ':' +
-    (m % 60).toString().padStart(2,0) + ':' +
-    (s % 60).toString().padStart(2,0) + '.' +
-    (ms % 1000).toString().padStart(3,0);
+  return timeToString(Math.floor(m / 60), m % 60, s % 60, ms % 1000);
+}
+function timeToString(h, m, s, ms) {
+  const t = h.toString().padStart(2,0) + ':' +
+    m.toString().padStart(2,0) + ':' +
+    s.toString().padStart(2,0);
+  if (ms == undefined) return t;
+  return t + '.' + ms.toString().padStart(3,0);
 }
 
 function resetSettings() {
@@ -67,46 +71,90 @@ function goToNextScreen() {
 
 let elements = [];
 
-function showMenu() {
-  elements = [];
-  return E.showMenu({
-    '': { 'title': 'Set timer' },
-    '< Back' : () => {
-      E.showMenu(); // hide the menu
-      goToNextScreen();
-    },
-    'Reset': () => resetSettings(),
-    'Hours': {
-      value: settingsChronowid.hours,
-      min: 0,
-      max: 24,
-      step: 1,
-      onchange: v => {
-        settingsChronowid.hours = v;
-        updateSettings();
+function setTimer() {
+  let newTime = '';
+  g.setBgColor(g.theme.bg);
+  g.clear();
+  function timeFromString() {
+    const x = '00000' + newTime;
+    const seconds = parseInt(x.substr(x.length - 2), 10);
+    const minutes = parseInt(x.substr(x.length - 4, 2), 10);
+    const hours = parseInt(x.substr(0, x.length - 4), 10);
+    return { hours: hours, minutes: minutes, seconds: seconds };
+  }
+  function type(d) {
+    return () => {
+      newTime += d;
+      drawElements();
+    };
+  }
+  setElements([
+    {
+      x: 0, y: 0, w: 176, h: 44,
+      label: () => {
+        const t = timeFromString();
+        return timeToString(t.hours, t.minutes, t.seconds);
+      },
+      action: drawElements
+    }, {
+      x: 0, y: 44, w: 44, h: 44, hl: true,
+      label: () => 7,
+      action: type(7)
+    }, {
+      x: 44, y: 44, w: 44, h: 44, hl: true,
+      label: () => 8,
+      action: type(8)
+    }, {
+      x: 88, y: 44, w: 44, h: 44, hl: true,
+      label: () => 9,
+      action: type(9)
+    }, {
+      x: 0, y: 88, w: 44, h: 44, hl: true,
+      label: () => 4,
+      action: type(4)
+    }, {
+      x: 44, y: 88, w: 44, h: 44, hl: true,
+      label: () => 5,
+      action: type(5)
+    }, {
+      x: 88, y: 88, w: 44, h: 44, hl: true,
+      label: () => 6,
+      action: type(6)
+    }, {
+      x: 0, y: 132, w: 44, h: 44, hl: true,
+      label: () => 1,
+      action: type(1)
+    }, {
+      x: 44, y: 132, w: 44, h: 44, hl: true,
+      label: () => 2,
+      action: type(2)
+    }, {
+      x: 88, y: 132, w: 44, h: 44, hl: true,
+      label: () => 3,
+      action: type(3)
+    }, {
+      x: 132, y: 44, w: 44, h: 44, hl: true,
+      label: () => newTime ? 'Del' : 'X',
+      action: () => {
+        if (newTime) {
+          newTime = newTime.substr(0, newTime.length - 1);
+          drawElements();
+        }
+        else showCurrentScreen();
       }
-    },
-    'Minutes': {
-      value: settingsChronowid.minutes,
-      min: 0,
-      max: 59,
-      step: 1,
-      onchange: v => {
-        settingsChronowid.minutes = v;
-        updateSettings();
+    }, {
+      x: 132, y: 88, w: 44, h: 44, hl: true,
+      label: () => 'OK',
+      action: () => {
+        Object.assign(settingsChronowid, timeFromString());
+        goToNextScreen();
       }
-    },
-    'Seconds': {
-      value: settingsChronowid.seconds,
-      min: 0,
-      max: 55,
-      step: 5,
-      onchange: v => {
-        settingsChronowid.seconds = v;
-        updateSettings();
-      }
-    },
-  });
+    }, {
+      x: 132, y: 132, w: 44, h: 44, hl: true,
+      label: () => 0,
+      action: type(0)
+    }
+  ]);
 }
 
 function updateElement(el) {
@@ -138,8 +186,10 @@ function setElements(els) {
 
 Bangle.on("touch", (button, xy) => {
   // console.log('touch', JSON.stringify({ b: button, xy: xy, e: elements }));
+  const x = Math.min(xy.x, 175);
+  const y = Math.min(xy.y, 175);
   for (const el of elements)
-    if (el.action && xy.x >= el.x && xy.y >= el.y && xy.x - el.x < el.w && xy.y - el.y < el.h) {
+    if (el.action && x >= el.x && y >= el.y && x - el.x < el.w && y - el.y < el.h) {
       // console.log('touched', el.label());
       el.action();
     }
@@ -254,7 +304,7 @@ function showCurrentScreen() {
   });
 
   if (settingsChronowid.mode == COUNTDOWN)
-    timerElement.action = () => showMenu();
+    timerElement.action = () => setTimer();
 
   setElements(elements);
   return;
