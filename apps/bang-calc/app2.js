@@ -227,9 +227,64 @@ function delButton() {
 	}
 }
 
+let sign = 1; 
 // call this function to enter "prefix unary operator" mode
 function drawPreOpScreen() {
-	console.log('TODO: pre-op screen');
+	sign = 1;
+
+	const complete = !anyEmpty();
+	g.reset();
+	g.setBgColor('#000');
+	g.clear();
+	g.setColor('#008');
+	g.fillRect(0, 0, 57, 57);
+	g.fillRect(59, 0, 116, 57);
+	g.fillRect(118, 0, 175, 57);
+	g.fillRect(0, 59, 57, 116);
+	g.fillRect(59, 59, 175, 116);
+	g.fillRect(0, 118, 57, 175);
+	g.fillRect(59, 118, 175, 175);
+	g.setColor('#fff');
+	g.setFont("Vector", 24);
+	g.setFontAlign(0, 0);
+	g.drawString("e", 29, 29);
+	g.drawString("pi", 88, 29);
+	g.drawString("tau", 147, 29);
+	g.drawString("+/-", 29, 88);
+	g.drawString("Answer", 116, 88);
+	g.drawString("<<", 29, 147);
+	g.drawString("Number", 116, 147);
+
+	function exit() {
+		drawEquationMode();
+		Bangle.removeListener('touch', tapEvent);
+	}
+	function enterNumber(n) {
+		currentNode.val = n * sign;
+		exit();
+	}
+	function tapEvent(b, xy) {
+		if (xy.y < 59) {
+			if (xy.x < 59) enterNumber(Math.E);
+			else if (xy.x < 118) enterNumber(Math.PI);
+			else enterNumber(Math.PI * 2);
+		} else if (xy.y < 118) {
+			if (xy.x < 59) {
+				sign *= -1;
+				g.setColor('#008');
+				g.fillRect(0, 59, 57, 116);
+				g.setColor('#fff');
+				g.drawString(sign > 0 ? "+" : "-", 29, 88);
+			} else console.log('todo - answer menu');
+		} else {
+			if (xy.x < 59) exit();
+			else {
+				drawNumberScreen();
+				Bangle.removeListener('touch', tapEvent);
+			}
+		}
+	}
+	Bangle.on('touch', tapEvent);
 }
 
 // call this function to enter "type a number" mode
