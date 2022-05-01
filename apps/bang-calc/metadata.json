@@ -1,0 +1,14 @@
+{
+  "id": "bang-calc",
+  "name": "Calculator",
+  "version": "0.01",
+  "description": "Calculator designed for Bangle-sized screen",
+  "icon": "app.png",
+  "tags": "",
+  "supports": ["BANGLEJS2"],
+  "sortorder": -15,
+  "storage": [
+    {"name":"bang-calc.app.js", "url": "app.js"},
+    {"name":"bang-calc.img","url":"app-icon.js","evaluate":true}
+  ]
+}
