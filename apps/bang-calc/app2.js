@@ -4,7 +4,7 @@ const FONT_OFFSET_Y = 1;
 const EMPTY_NODE_SIZE = 48; // decent size touch target
 const WIDTH = g.getWidth();
 const BUTTON_HEIGHT = 48;
-const HEIGHT = g.getHeight() - BUTTON_HEIGHT; // TODO - subtract button space
+const HEIGHT = g.getHeight() - BUTTON_HEIGHT;
 
 // TODO: this is bad practice, remove when it's handled properly:
 Bangle.removeAllListeners();
@@ -162,17 +162,6 @@ let currentNode, ast;
 function acButton() { ast = currentNode = {}; }
 acButton();
 
-// for debug, populate this nonsense:
-ast = { op: '+', children: [
-	{ op: '^', children: [{ val: 3.14 }, currentNode] },
-	{ op: '^', children: [
-		{ op: '+', children: [{ val: 1 }, {  }] },
-		{ op: '/', children: [{  }, { val: 2 }] }
-	] },
-	{ val: 1 }
-]};
-
-
 function anyEmpty() {
 	let queue = [ast];
 	while (queue.length) {
@@ -230,6 +219,7 @@ function delButton() {
 let sign = 1; 
 // call this function to enter "prefix unary operator" mode
 function drawPreOpScreen() {
+	console.log('prefix op screen!');
 	sign = 1;
 
 	const complete = !anyEmpty();
@@ -289,12 +279,181 @@ function drawPreOpScreen() {
 
 // call this function to enter "type a number" mode
 function drawNumberScreen() {
-	console.log('TODO: number screen');
+	console.log('number screen!');
+	g.reset();
+	g.setBgColor('#000');
+	g.clear();
+	g.setColor('#008');
+	g.fillRect(1, 45, 42, 86);
+	g.fillRect(45, 45, 86, 86);
+	g.fillRect(89, 45, 130, 86);
+	g.setColor('#800');
+	g.fillRect(133, 45, 174, 86);
+	g.setColor('#008');
+	g.fillRect(1, 89, 42, 130);
+	g.fillRect(45, 89, 86, 130);
+	g.fillRect(89, 89, 130, 130);
+	g.setColor('#800');
+	g.fillRect(133, 89, 174, 130);
+	g.setColor('#008');
+	g.fillRect(1, 133, 42, 174);
+	g.fillRect(45, 133, 86, 174);
+	g.fillRect(89, 133, 130, 174);
+	g.fillRect(133, 133, 174, 174);
+	g.setColor('#fff');
+	g.setFont("Vector", 18);
+	g.setFontAlign(0, 0);
+	g.drawString("7", 22, 66);
+	g.drawString("8", 66, 66);
+	g.drawString("9", 110, 66);
+	g.drawString("del", 154, 66);
+	g.drawString("4", 22, 110);
+	g.drawString("5", 66, 110);
+	g.drawString("6", 110, 110);
+	g.drawString(".", 154, 110);
+	g.drawString("1", 22, 154);
+	g.drawString("2", 66, 154);
+	g.drawString("3", 110, 154);
+	g.drawString("0", 154, 154);
+
+	let number = '0';
+	function drawNumber() {
+		g.setBgColor('#000');
+		g.clearRect(0, 0, 175, 43);
+		g.setFontAlign(1, 0);
+		g.drawString(number, 175, 22);
+		g.setFontAlign(0, 0);
+	}
+	drawNumber();
+
+	function exit() {
+		Bangle.removeListener('touch', tapEvent);
+		drawEquationMode();
+	}
+	function ok() {
+		currentNode.val = parseFloat(number) * sign;
+		exit();
+	}
+	function typeNumber(n) {
+		if (number == '0' && n != '.') number = n;
+		else number += n;
+		drawNumber();
+	}
+	function updatePointButton() {
+		g.setColor('#800');
+		g.fillRect(133, 89, 174, 130);
+		g.setColor('#fff');
+		g.drawString(number.includes('.') ? "OK" : ".", 154, 110);
+	}
+	function tapEvent(b, xy) {
+		if (xy.y < 44) ok();
+		else if (xy.y < 88) {
+			if (xy.x < 44) typeNumber('7');
+			else if (xy.x < 88) typeNumber('8');
+			else if (xy.x < 132) typeNumber('9');
+			else {
+				if (number.length > 1) number = number.substring(0, number.length - 1);
+				else number = '0';
+				drawNumber();
+				updatePointButton();
+			}
+		} else if (xy.y < 132) {
+			if (xy.x < 44) typeNumber('4');
+			else if (xy.x < 88) typeNumber('5');
+			else if (xy.x < 132) typeNumber('6');
+			else {
+				if (number.includes('.')) ok();
+				else {
+					typeNumber('.');
+					updatePointButton();
+				}
+			}
+		} else {
+			if (xy.x < 44) typeNumber('1');
+			else if (xy.x < 88) typeNumber('2');
+			else if (xy.x < 132) typeNumber('3');
+			else typeNumber('0');
+		}
+	}
+	Bangle.on('touch', tapEvent);
 }
 
 // call this function to enter "binary or postfix unary operator" mode
 function drawPostOpScreen() {
-	console.log('TODO: post-op screen');
+	console.log('postfix op screen!');
+	const complete = !anyEmpty();
+	g.reset();
+	g.setBgColor('#000');
+	g.clear();
+	g.setColor('#008');
+	g.fillRect(0, 0, 57, 57);
+	g.fillRect(59, 0, 116, 57);
+	g.fillRect(118, 0, 175, 57);
+	g.fillRect(0, 59, 57, 116);
+	g.fillRect(59, 59, 116, 116);
+	g.fillRect(118, 59, 175, 116);
+	g.fillRect(0, 118, 57, 175);
+	g.fillRect(59, 118, 116, 175);
+	g.fillRect(118, 118, 175, 175);
+	g.setColor('#fff');
+	g.setFont("Vector", 24);
+	g.setFontAlign(0, 0);
+	g.drawString("+", 29, 29);
+	g.drawString("-", 88, 29);
+	g.drawString("!", 147, 29);
+	g.drawString("x", 29, 88);
+	g.drawString("/", 88, 88);
+	g.drawString("x^y", 147, 88);
+	g.drawString("<<", 29, 147);
+	g.drawString("EXP", 88, 147);
+	g.drawString("", 147, 147);
+
+	function exit() {
+		Bangle.removeListener('touch', tapEvent);
+		drawEquationMode();
+	}
+	function addBinaryOperator(op) {
+		const parent = findParent(currentNode);
+		if ((op == '*' || op == '+') && parent && parent.op == op) {
+			const i = parent.children.indexOf(currentNode);
+			currentNode = {};
+			parent.children.splice(i, 0, currentNode);
+		} else if (!parent) {
+			currentNode = {};
+			ast = { op: op, children: [ ast, currentNode ]};
+		} else {
+			const i = parent.children.indexOf(currentNode);
+			const newNode = {};
+			parent.children[i] = { op: op, children: [currentNode, newNode] };
+			currentNode = newNode;
+		}
+		exit();
+	}
+	function addPostfixOperator(op) {
+		const parent = findParent(currentNode);
+		if (!parent) currentNode = ast = { op: op, children: [ ast ]};
+		else {
+			const i = parent.children.indexOf(currentNode);
+			currentNode = parent.children[i] = { op: op, children: [currentNode] };
+		}
+		exit();
+	}
+	function tapEvent(b, xy) {
+		if (xy.y < 59) {
+			if (xy.x < 59) addBinaryOperator('+');
+			else if (xy.x < 118) addBinaryOperator('-');
+			else console.log('todo: !'); // addPostfixOperator('!');
+		} else if (xy.y < 118) {
+			if (xy.x < 59) addBinaryOperator('*');
+			else if (xy.x < 118) addBinaryOperator('/');
+			else addBinaryOperator('^');
+		} else {
+			if (xy.x < 59) exit();
+			else if (xy.x < 118) console.log('TODO - *10^');
+			else console.log('no button here');
+		}
+	}
+	Bangle.on('touch', tapEvent);
 }
 
 function editNode() {
@@ -302,8 +461,38 @@ function editNode() {
 	else drawPreOpScreen();
 }
 
+function evalNode(node) {
+	if (node.val) return node.val;
+	switch (node.op) {
+		case '+': return node.children.reduce((a, n) => a + evalNode(n), 0);
+		case '*': return node.children.reduce((a, n) => a * evalNode(n), 1);
+		case '-': return evalNode(node.children[0]) - evalNode(node.children[1]);
+		case '/': return evalNode(node.children[0]) / evalNode(node.children[1]);
+		case '^': return Math.pow(evalNode(node.children[0]), evalNode(node.children[1]));
+	}
+}
+
 function equals() {
-	console.log('equals!');
+	console.log('equals screen!');
+
+	const answer = evalNode(ast);
+	console.log('calculator answer:', answer);
+
+	g.reset();
+	g.setBgColor('#fff');
+	g.setColor('#000');
+	g.clear();
+	g.setFont("Vector", 18);
+	g.setFontAlign(0, 0);
+	// TODO - make sure this fits on the screen somehow
+	g.drawString(answer, 88, 88);
+	g.drawString("Tap to continue", 88, 155);
+
+	function tapEvent(b, xy) {
+		drawEquationMode();
+		Bangle.removeListener('touch', tapEvent);
+	}
+	Bangle.on('touch', tapEvent);
 }
 
 // Call this button to enter the "expanded menu" mode
@@ -483,7 +672,7 @@ function drawEquationMode() {
 	function tapEvent(b, xy) {
 		if (xy.y > HEIGHT) {
 			if (xy.x < 59) {
-				if (complete) console.log('todo - equals!');
+				if (complete) equals();
 				else {
 					delButton();
 					drawEquationMode(); // reload this same view
@@ -531,4 +720,4 @@ function drawEquationMode() {
 	return renderCache;
 }
 
-drawEquationMode();
+drawPreOpScreen();
