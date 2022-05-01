@@ -128,12 +128,12 @@ function drawNode(ast, renderCache, node, x, y) {
 		case '+': case '-': case '*':
 			let first = true, opX = x + FONT_SIZE * 0.2 + FONT_OFFSET_X;
 			if (rc.brackets) {
-				g.fillRect(x, y, x + 3, y + 1);
-				g.fillRect(x, y, x + 1, y + rc.h - 1);
-				g.fillRect(x, y+ rc.h - 2, x + 3, y + rc.h - 1);
-				g.fillRect(x + rc.w - 4, y, x + rc.w - 1, y + 1);
-				g.fillRect(x + rc.w - 2, y, x + rc.w - 1, y + rc.h - 1);
-				g.fillRect(x + rc.w - 4, y+ rc.h - 2, x + rc.w -1, y + rc.h - 1);
+				g.fillRect(x + 1, y, x + 3, y + 1);
+				g.fillRect(x, y + 1, x + 1, y + rc.h - 2);
+				g.fillRect(x + 1, y + rc.h - 2, x + 3, y + rc.h - 1);
+				g.fillRect(x + rc.w - 4, y, x + rc.w - 2, y + 1);
+				g.fillRect(x + rc.w - 2, y, x + rc.w - 1, y + rc.h - 2);
+				g.fillRect(x + rc.w - 4, y + rc.h - 2, x + rc.w - 2, y + rc.h - 1);
 				opX += 6;
 			}
 			for (const child of node.children) {
@@ -326,7 +326,8 @@ function drawNumberScreen() {
 
 	let number = '0';
 	function drawNumber() {
-		g.setBgColor('#000');
+		g.setBgColor('#fff');
+		g.setColor('#000');
 		g.clearRect(0, 0, 175, 43);
 		g.setFontAlign(1, 0);
 		g.drawString(number, 175, 22);
@@ -435,7 +436,9 @@ function drawPostOpScreen() {
 			parent.children[i] = { op: op, children: [currentNode, newNode] };
 			currentNode = newNode;
 		}
-		exit();
+		drawPreOpScreen();
+		Bangle.removeListener('touch', tapEvent);
+
 	}
 	function addPostfixOperator(op) {
 		const parent = findParent(currentNode);
@@ -492,9 +495,34 @@ function equals() {
 	g.clear();
 	g.setFont("Vector", 16);
 	g.setFontAlign(0, 0);
-	// TODO - make sure this fits on the screen somehow
-	g.drawString(answer, 88, 88);
 	g.drawString("Tap to continue", 88, 155);
+
+	// const naive = answer.toString();
+	// if (g.stringWidth(naive) <= WIDTH)
+	// 	g.drawString(naive, 88, 88);
+	// else {
+	const answerString = answer.toFixed(16);
+	if (answerString.includes('e')) {
+		const parts = answerString.split('e');
+		g.drawString(parts[0], 88, 80);
+		g.setFontAlign(1, 0);
+		g.drawString('x 10', 87, 106);
+		g.setFontAlign(-1, 0);
+		g.drawString(parts[1], 89, 98);
+	} else {
+		const answerStrings = answerString.replace(/0+$/, '').split('.');
+		console.log('calculator answerStrings:', answerStrings);
+		let y = 100;
+		if (answerStrings[1]) {
+			g.drawString('.' + answerStrings[1], 88, 100);
+			y -= 18;
+		}
+		for (let i = answerStrings[0].length - 12; i > -12; i -= 12) {
+			g.drawString(answerStrings[0].substring(Math.max(i, 0), i + 12), 88, y);
+			y -= 18;
+		}
+	}
+	// }
 
 	function tapEvent(b, xy) {
 		drawEquationMode();
