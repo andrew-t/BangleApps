@@ -5,9 +5,10 @@ const EMPTY_NODE_SIZE = 48; // decent size touch target
 const WIDTH = g.getWidth();
 const BUTTON_HEIGHT = 48;
 const HEIGHT = g.getHeight() - BUTTON_HEIGHT;
+const LOG_10 = Math.log(10);
 
-// TODO: this is bad practice, remove when it's handled properly:
-Bangle.removeAllListeners();
+// This is useful for debugging on the emulator but very bad for using IRL:
+// Bangle.removeAllListeners();
 
 // Finds an unused ID to assign to a node
 function getAvailableId(ast) {
@@ -31,8 +32,15 @@ function getRenderCacheEntry(ast, renderCache, node) {
 
 // Turns a number into something printable, so as short as possible
 function shortNumberString(val) {
-	// TODO: this but better
-	return val.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+	const naive = val.toString(); if (naive.length < 6) return naive;
+	const abs = Math.abs(val);
+	if (abs < 1000 && abs >= 0.005) return val.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+	if (abs > 1) {
+		if (abs < 1000000) return Math.floor(val / 1000) + 'k';
+		if (abs < 1000000000) return Math.floor(val / 1000000) + 'M';
+		if (abs < 1000000000000) return Math.floor(val / 1000000000) + 'B';
+	}
+	return (val < 0 ? '-' : '') + abs.toString()[0] + 'e' + Math.floor(Math.log(abs) / LOG_10);
 }
 
 function needsBrackets(node, parent) {
@@ -482,7 +490,7 @@ function equals() {
 	g.setBgColor('#fff');
 	g.setColor('#000');
 	g.clear();
-	g.setFont("Vector", 18);
+	g.setFont("Vector", 16);
 	g.setFontAlign(0, 0);
 	// TODO - make sure this fits on the screen somehow
 	g.drawString(answer, 88, 88);
